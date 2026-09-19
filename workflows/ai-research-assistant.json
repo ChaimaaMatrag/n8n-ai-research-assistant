@@ -1,0 +1,205 @@
+{
+  "name": "AI Research Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ece3cdd8-9152-4cfc-88d8-5caa8184566c",
+      "name": "When chat message received",
+      "webhookId": "64f10d67-544a-4551-85c4-a60d382fa597"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        160
+      ],
+      "id": "e4114388-08a3-4cc7-9313-dbc895451397",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "8lCgMLaKu6YKPWg0",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a research assistant. Your job is to answer the user's question as accurately and clearly as possible.\n\nIf you are not sure about something or don't have current information, say so honestly instead of guessing.\n\nAlways structure your final answer with:\n- Short answer\n- Key findings\n- Recommendation\n- Limitations"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1386c06b-b7fe-43d6-a917-ab0f65faa6fa",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        416,
+        224
+      ],
+      "id": "be66146b-1337-4925-805e-566e1f612df1",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        256,
+        224
+      ],
+      "id": "868b9832-f890-4bc0-825e-4632b9b3402d",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "hprmnXuiOaDGpPSC",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"short_answer\": \"A concise 1-2 sentence direct answer to the user's question\",\n  \"key_findings\": [\n    \"First important fact or finding from the research\",\n    \"Second important fact or finding from the research\"\n  ],\n  \"sources\": [\n    \"https://example.com/source-1\",\n    \"https://example.com/source-2\"\n  ],\n  \"recommendation\": \"A clear, actionable recommendation based on the findings\",\n  \"limitations\": \"Honest note about what's uncertain, missing, or could be outdated\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        128
+      ],
+      "id": "ad18e565-2498-48ad-9eb5-b564afd936f2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f33a7698-6ffd-40b9-a033-dc1a4ae90b88",
+              "name": "output",
+              "value": "=**Short Answer:** {{ $json.output.short_answer }}\n\n**Key Findings:**\n{{ $json.output.key_findings.join('\\n- ') }}\n\n**Sources:**\n{{ $json.output.sources.join('\\n') }}\n\n**Recommendation:** {{ $json.output.recommendation }}\n\n**Limitations:** {{ $json.output.limitations }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        576,
+        0
+      ],
+      "id": "f864176e-3b2e-40e1-a441-315e2204f771",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0415738e-bbb9-4974-8ff5-bf2d690c3f35",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f7c8d6c53907bcb54a52ad4d92a62905f45e6947a00d4b872578f060db6b2eea"
+  },
+  "nodeGroups": [],
+  "id": "w1zjZSYfr2Z14kAU",
+  "tags": []
+}
